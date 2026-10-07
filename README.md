@@ -23,6 +23,50 @@ The built-in local executor creates approved drafts. Another agent can consume t
 
 [Detailed architecture](docs/ARCHITECTURE.md) · [Demo walkthrough](docs/DEMO.md) · [Feature status](STATUS.md) · [Privacy](docs/PRIVACY.md)
 
+## How the pieces work
+
+The application service connects the desktop UI, native capture, local models and durable meeting state. The diagram below follows that data through the system. Capture and inference run locally; the connected-agent boundary is crossed only when the user explicitly configures sharing.
+
+```mermaid
+flowchart TD
+  subgraph Desktop["Desktop control"]
+    direction TB
+    ReactUI["React workspace + copilot"] --> IPC["Electron main + preload"]
+    IPC --> Service["Node application service"]
+  end
+
+  subgraph AudioPath["Local audio pipeline"]
+    direction TB
+    Swift["Swift capture helper"] --> Chunks["Audio chunks + journal"]
+    Chunks --> Speech["Bounded queue + whisper.cpp"]
+  end
+
+  subgraph Memory["Evidence and context"]
+    direction TB
+    DB["SQLite vault + local files"] --> Project["Current project context"]
+  end
+
+  subgraph LocalWork["Local inference and work"]
+    direction TB
+    Ollama["Ollama on localhost"] --> Review["Task review + approval"]
+    Review --> Saved["Local drafts + artifact hashes"]
+  end
+
+  Service --> Swift
+  Service --> DB
+  Speech --> DB
+  Project --> Ollama
+  DB --> Handoff["Handoff files + read-only MCP"]
+  Handoff -. "Explicit connection" .-> Agent["Agent host + its permissions"]
+```
+
+- **Capture survives the model pipeline.** The Swift helper writes audio chunks and a recovery journal before transcription. A bounded queue and retry/recovery handling keep capture and slower transcription separate.
+- **Context is assembled from evidence.** The application combines recent transcript segments, personal notes, selected references and the project brief for local inference. Live answers and generated notes return to the workspace; only proposed work goes through task approval. Human notes remain separate from generated interpretations.
+- **Follow-through leaves a checkable record.** Approved local drafts are saved back into the vault with hashes and source/run revisions. Project briefs recheck those artifacts before presenting saved work in the next meeting; cancellations and changed evidence override stale context.
+- **The handoff is an interface, not an automatic trigger.** Revisioned Markdown/JSON exports and five MCP read tools let another configured agent pick up the context. The agent uses its own host permissions for execution. The optional Codex adapter checks metadata only; cloud generation stays disabled.
+
+The diagram omits return arrows to keep the main paths readable: answers stream back to React, and draft artifacts update the same vault and project brief. See the [detailed architecture](docs/ARCHITECTURE.md) for module paths, exported handoff files and execution boundaries.
+
 ## What I built
 
 ### Live help with the meeting in context
