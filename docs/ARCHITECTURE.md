@@ -18,20 +18,40 @@ Audio chunks and recovery journals make interrupted capture recoverable in teste
 
 The application constrains extracted actions and decisions using source evidence. These checks reduce unsupported output, but do not establish complete extraction accuracy or clinical reliability. Complex wording and relative dates remain limitations.
 
-## Approval is separate from completion
+## Live context and agent handoff
+
+The copilot's question path combines recent transcript segments, the meeting's personal notes, selected project references and the current project brief. The brief rechecks saved artifacts and distinguishes outstanding commitments from saved drafts. Cancelled tasks are carried as overriding context so an old transcript does not revive them. Quick prompts support suggested replies, catch-up, decision recall and saved-work status; output streams to the main interface or floating panel.
+
+Finalization records a durable, deduplicated `meeting.finalized` event and prepares a handoff tied to the transcript revision. The handoff directory contains:
+
+| File | Role |
+| --- | --- |
+| `manifest.json` | Stable meeting/event/project identity, source revision and task IDs |
+| `brief.md` | Human-readable task summary and execution boundaries |
+| `tasks.json` | Proposed work, ownership and current task state |
+| `source-index.json` | References to the versioned transcript and personal notes |
+
+The exports refresh when relevant tasks or generated notes change. Project briefs separately recheck artifact hashes and expose current decisions, saved deliverables and outstanding work.
 
 ```mermaid
-flowchart LR
-  Evidence[Transcript evidence] --> Review[Proposed action for review]
-  Review --> Approval[Explicit local approval]
-  Approval --> Draft[Saved local draft]
-  Draft --> Hash[Verify artifact hash and source context]
-  Hash --> Brief[Next-meeting project brief]
+flowchart TD
+  Meeting["Meeting ends"] --> Finalize["Finalize evidence"]
+  Finalize --> Handoff["Tasks and source index"]
+  Handoff --> Review["User review"]
+  Review --> Local["Approve local work"]
+  Local --> Artifacts["Save draft artifacts"]
+  Artifacts --> Brief["Refresh project brief"]
+  Handoff -. "Explicit agent connection" .-> Agent["Read-only MCP or files"]
+  Agent -. "Execution outside Meeting Loop" .-> Host["Agent host and permissions"]
 ```
 
-Generated work remains a draft. Report proposals distinguish unverified design ideas from source facts. Email drafts have no inferred recipient and are marked unsent. There is no send operation. Run records do not invent code execution, passed tests, or external confirmation.
+The MCP interface exposes five read tools: `search_meetings`, `read_transcript`, `read_project_brief`, `list_tasks`, and `read_task`. It can supply another agent with the context for work, but does not start that agent, approve execution, accept completion writes or automatically register a cloud client. Any external agent's actions use its host's tools and permissions. The file exports offer a second, directly readable handoff surface.
 
-The project brief rechecks artifacts and context. A modified artifact cannot retain verified completion evidence; cancelled tasks take precedence over stale generated context. A matching hash verifies file integrity, not the truth or quality of its content.
+## Approval and follow-through
+
+The built-in executor runs after explicit local approval and creates reviewable report/design proposals or unsent email drafts. It is not a general-purpose shell/research executor. Email drafts have no inferred recipient and there is no send operation. Run records do not invent code execution, passed tests or external confirmation.
+
+A completed local draft is stored with artifact hashes and source/run metadata. The project brief rechecks artifacts and context before the next meeting: changed files cannot retain verified completion evidence, and cancellations take precedence over stale generated requests. A matching hash establishes file integrity, not the truth or quality of the content.
 
 ## Keep the default data path local
 

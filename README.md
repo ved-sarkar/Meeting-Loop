@@ -1,40 +1,34 @@
 # Meeting Loop
 
-**A local-first meeting copilot for macOS that carries a conversation through to the work that follows.** Capture consented audio, keep your own notes, ask questions against transcript evidence, and turn approved action items into local drafts you can revisit in the next meeting.
+**A macOS meeting copilot for live assistance, shared context and agent-ready follow-through.** Get help with what to say, catch up on the discussion, and ask questions using the meeting transcript and your project's saved work. When the meeting ends, carry that context into a structured handoff so the next agent or approved local workflow can pick up with the sources, decisions and task state intact.
 
-Built with **React, Electron, Swift and SQLite**, with **Ollama** for local language-model inference and **whisper.cpp** for transcription. Meeting content stays on your Mac in the default workflow; no API key or paid cloud fallback is required.
+I built Meeting Loop to connect three moments: **help during the conversation, a useful handoff afterward, and informed follow-up in the next meeting**. The implementation combines a floating copilot, local capture and inference, persistent project memory, task review, and interfaces for another assistant to read the context.
 
-## How it fits together
+## The loop at a glance
 
 ```mermaid
-flowchart LR
-  subgraph Mac["Your Mac — default content path"]
-    UI["React workspace and floating copilot"] --> IPC["Allowlisted Electron IPC"]
-    IPC --> App["Application service"]
-    App --> Capture["Swift audio capture"]
-    Capture --> Audio["Durable chunks and recovery journal"]
-    Audio --> ASR["Queued whisper.cpp transcription"]
-    ASR --> Vault["SQLite vault and local files"]
-    App <--> Vault
-    App <--> Model["Ollama: notes, questions and draft proposals"]
-    App --> Drafts["Approved local drafts"]
-    Drafts --> Vault
-    Vault --> MCP["Read-only MCP interface"]
-  end
-  MCP -. "Explicitly configured sharing" .-> Client["Chosen assistant client"]
-  App -. "Optional metadata-only check" .-> Codex["Official Codex service"]
+flowchart TD
+  Live["Live meeting"] --> Copilot["Live copilot"]
+  Copilot --> Context["Shared meeting context"]
+  Context --> Handoff["Reviewable handoff"]
+  Handoff -->|"Approve work or connect an agent"| Work["Follow-through"]
+  Work --> Next["Next-meeting memory"]
 ```
 
-The desktop interface talks to a small set of allowed application commands. Audio is written into recoverable chunks before queued transcription adds evidence to the vault. The application combines that evidence with personal notes, project references and current task state for local answers and drafts. Saved artifacts feed the project brief for the next conversation.
+**During:** the copilot can suggest a response, catch you up, recall decisions and explain what work is actually saved. **After:** Meeting Loop prepares tasks plus source references for review and handoff. **Next time:** the copilot draws on current project state and checked artifacts, including cancellations and changed outputs.
 
-The dotted paths are optional boundaries: a configured MCP client can read selected vault content, and a user-initiated Codex check can retrieve account/model metadata. **Cloud generation is disabled.** Neither connection is needed to browse the example meeting. [More on the architecture](docs/ARCHITECTURE.md) · [Privacy and data flow](docs/PRIVACY.md)
+The built-in local executor creates approved drafts. Another agent can consume the handoff through the read-only MCP interface or readable vault exports when explicitly connected. Meeting Loop does not automatically launch or authorize an external agent's work; execution stays with that agent's host and the user's permissions.
+
+**Stack:** React · Electron · Swift · SQLite · Ollama · whisper.cpp. The default content path stays on your Mac, with no API key or paid cloud fallback required.
+
+[Detailed architecture](docs/ARCHITECTURE.md) · [Demo walkthrough](docs/DEMO.md) · [Feature status](STATUS.md) · [Privacy](docs/PRIVACY.md)
 
 ## What I built
 
-### A workspace for the whole meeting
+### Live help with the meeting in context
 
 - **Meetings and projects:** an overview, project grouping, local search, meeting detail views, appearance settings and keyboard shortcuts.
-- **Floating copilot:** a compact always-on-top panel with meeting context, streamed answers and cancellation, alongside the main workspace.
+- **Live copilot:** a compact always-on-top panel with selectable meeting context, streamed answers and cancellation. Built-in prompts include **What should I say?**, **Catch me up**, **What did we decide?**, and **What is actually completed?** Answers draw on available transcript segments, human notes, project references and the current project brief.
 - **Human notes alongside AI notes:** personal notes autosave independently; generated summaries, decisions and questions are versioned and linked to transcript moments. Regenerating a summary does not replace what you wrote.
 - **Editable evidence:** timestamped transcript segments, corrections that retain the original source, audio playback and source navigation.
 
@@ -45,8 +39,10 @@ The dotted paths are optional boundaries: a configured MCP client can read selec
 - **Imports and references:** local audio/transcript import, explicit text/PDF reference imports, and local screenshot selection/preview. Reference hashes detect changed content; screenshot pixels are not interpreted by the text model.
 - **Project memory:** project-scoped lexical search and briefs that combine meeting evidence, task state and checked deliverables. Cancelled requests remain cancelled when older transcripts are revisited.
 
-### From commitment to reviewable work
+### Agent-ready handoff and follow-through
 
+- **Structured handoff:** finalizing a meeting records a durable `meeting.finalized` event and exports a brief, task records, source index and revisioned manifest. The UI also exposes **Prepare meeting handoff**; later task/notes updates refresh the exported context.
+- **Context for another agent:** a configured assistant can read the project brief, transcript and task state through MCP, or inspect the local Markdown/JSON exports. This supplies a starting point for user-authorized work beyond the meeting, without treating transcript text as permission to act.
 - **Evidence-linked action items:** conservative source checks connect an action and owner to the transcript. Repeated extraction preserves task identity instead of creating the same commitment again.
 - **Explicit approval:** a proposed task must be approved before local draft creation. Cancellation and revision checks reject late results based on stale context.
 - **Saved drafts:** report/design proposals and email drafts are stored as local artifacts. Email remains **UNSENT**, with no inferred recipient and no sending connector. Generated code or design suggestions are proposals, not executed or externally verified work.
@@ -58,12 +54,24 @@ The Electron renderer uses context isolation with Node integration disabled. The
 
 These are implemented controls, not a claim of comprehensive security certification. Local storage is not encryption. [Feature status and boundaries](STATUS.md)
 
+## Built-in connections
+
+| Connection | What it does in this implementation |
+| --- | --- |
+| **Ollama** | Local streamed answers, summaries and draft proposals using available meeting/project context |
+| **whisper.cpp** | Local audio transcription feeding timestamped evidence into the vault |
+| **Read-only MCP** | Gives an explicitly configured agent five tools: `search_meetings`, `read_transcript`, `read_project_brief`, `list_tasks`, and `read_task` |
+| **Readable handoff files** | Exports the brief, tasks and source references as Markdown/JSON so another tool can consume the context |
+| **Official Codex adapter** | Optional version-gated account/model/quota inspection; generation and automatic cloud execution remain disabled |
+
+The local models are part of the default workflow. Connecting a cloud assistant through MCP is an explicit data-sharing choice: that client can receive the vault text it reads. The Codex check is metadata-only. There is no built-in email-send, calendar-publishing or general remote-execution connector. [Data boundaries](docs/PRIVACY.md)
+
 ## Design choices
 
 Three ideas guide the implementation:
 
 1. **Keep evidence separate from interpretation.** Original transcript material, human notes and generated notes have distinct roles and revisions.
-2. **Treat approval, drafting and completion as different states.** A model response cannot grant permission, prove tests passed or claim an email was sent.
+2. **Make the handoff actionable without making it permission.** Tasks travel with source revisions and current state; approval, drafting and completion remain distinct. A model response cannot grant permission, prove tests passed or claim an email was sent.
 3. **Carry checked state forward.** The next meeting uses current task status and rechecked artifacts, including cancellations and changes, rather than trusting an old summary.
 
 Built by Ved as a personal project, with AI assistance during development. The source includes a fictional example so the workflow can be explored without a real recording.
