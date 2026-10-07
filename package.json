@@ -1,0 +1,32 @@
+{
+  "name": "meeting-loop",
+  "productName": "Meeting Loop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A local-first meeting copilot for macOS",
+  "main": "desktop/main.mjs",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "start": "electron .",
+    "test": "node --test tests/*.test.mjs server/providers/provider.test.mjs",
+    "native:build": "swift build -c release --package-path native/capture-helper",
+    "package": "node scripts/package.mjs",
+    "check": "npm run build && npm test",
+    "test:ui": "node scripts/ui-smoke.mjs",
+    "test:workflow": "node scripts/smoke-workflow.mjs"
+  },
+  "dependencies": {
+    "lucide-react": "1.47.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@electron/packager": "20.3.0",
+    "@playwright/test": "1.63.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "electron": "44.4.3",
+    "vite": "8.3.0"
+  }
+}

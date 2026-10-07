@@ -1,0 +1,84 @@
+{
+  "$comment": "Modified for Meeting Loop: extracted InitializeParams and its transitive definitions from OpenAI Codex 0.154.0-alpha.6.2; omitted the upstream title. This modification notice was added on 2026-10-07. Copyright 2025 OpenAI; Apache-2.0. See LICENSE.txt, NOTICE.txt and README.md in this directory.",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "capabilities": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/InitializeCapabilities"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "clientInfo": {
+      "$ref": "#/definitions/ClientInfo"
+    }
+  },
+  "required": [
+    "clientInfo"
+  ],
+  "type": "object",
+  "definitions": {
+    "InitializeCapabilities": {
+      "description": "Client-declared capabilities negotiated during initialize.",
+      "properties": {
+        "experimentalApi": {
+          "default": false,
+          "description": "Opt into receiving experimental API methods and fields.",
+          "type": "boolean"
+        },
+        "extensions": {
+          "additionalProperties": true,
+          "description": "MCP extension settings declared by the app-server client.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "mcpServerOpenaiFormElicitation": {
+          "description": "Legacy opt-in for the `openai/form` MCP extension.\n\nNew clients should declare `openai/form` in [`Self::extensions`].",
+          "type": "boolean"
+        },
+        "optOutNotificationMethods": {
+          "description": "Exact notification method names that should be suppressed for this connection (for example `thread/started`).",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        },
+        "requestAttestation": {
+          "default": false,
+          "description": "Opt into `attestation/generate` requests for upstream `x-oai-attestation`.",
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "ClientInfo": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "type": "object"
+    }
+  }
+}

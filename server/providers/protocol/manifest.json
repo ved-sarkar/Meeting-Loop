@@ -1,0 +1,32 @@
+{
+  "generatedBy": "codex app-server generate-json-schema",
+  "codexVersion": "0.154.0-alpha.6.2",
+  "generatedAt": "2026-09-19",
+  "scope": "Read-only metadata. InitializeParams extracted with referenced definitions and title omitted; modification notice added during release preparation. Five v2 files are byte-identical to the pinned upstream release.",
+  "files": {
+    "InitializeParams.json": "a00bf9e89704a65c476df2b44b66c475dc613b0084c3fe89e753f5057ff66275",
+    "v2/GetAccountParams.json": "30b545275f60975b55bd6fbaafd70f15505801d14168ee82d3931b6e93c78aab",
+    "v2/GetAccountResponse.json": "08a7dd8c570c905b0bb6998d43ed133e72e2445f08125f86dfc96887e288701a",
+    "v2/ModelListParams.json": "de29a536c00a5b8f46f34dba417dabd93365305571a8ed200e33bea85db68b5a",
+    "v2/ModelListResponse.json": "c7b58b332f6cf18fd64235409a6daf27bb9e6c09d12dcd0daa2f3dc628b55f6f",
+    "v2/GetAccountRateLimitsResponse.json": "76bc91758269a89f57cd16c618b91c1fba76aca3e9d2b6186205e6f107d6b28c"
+  },
+  "originalGeneratedFiles": {
+    "InitializeParams.json": "11b9630b7c5a3209c61be940e091685fc9cd6b11f32783399f78aaa8b7b83d7a",
+    "v2/GetAccountParams.json": "30b545275f60975b55bd6fbaafd70f15505801d14168ee82d3931b6e93c78aab",
+    "v2/GetAccountResponse.json": "08a7dd8c570c905b0bb6998d43ed133e72e2445f08125f86dfc96887e288701a",
+    "v2/ModelListParams.json": "de29a536c00a5b8f46f34dba417dabd93365305571a8ed200e33bea85db68b5a",
+    "v2/ModelListResponse.json": "c7b58b332f6cf18fd64235409a6daf27bb9e6c09d12dcd0daa2f3dc628b55f6f",
+    "v2/GetAccountRateLimitsResponse.json": "76bc91758269a89f57cd16c618b91c1fba76aca3e9d2b6186205e6f107d6b28c"
+  },
+  "upstream": {
+    "repository": "https://github.com/openai/codex",
+    "tag": "rust-v0.154.0-alpha.6.2",
+    "commit": "b5bffd3ec4db487e7e3dec59663875b0ef7b72ca",
+    "package": "codex-app-server-protocol",
+    "license": "Apache-2.0",
+    "verifiedAt": "2026-10-07",
+    "licenseFile": "LICENSE.txt",
+    "noticeFile": "NOTICE.txt"
+  }
+}

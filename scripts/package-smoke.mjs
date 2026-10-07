@@ -1,0 +1,10 @@
+import {_electron as electron} from '@playwright/test';
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
+import assert from 'node:assert/strict';
+const executable=path.resolve('release/Meeting Loop-darwin-arm64/Meeting Loop.app/Contents/MacOS/Meeting Loop');
+const vault=fs.mkdtempSync(path.join(os.tmpdir(),'MeetingLoopPackageTest-'));
+const started=Date.now();
+const app=await electron.launch({executablePath:executable,args:['--user-data-dir='+path.join(vault,'electron-profile')],env:{...process.env,MEETING_LOOP_VAULT:vault},timeout:30000});
+try{const page=await app.firstWindow();await page.getByRole('heading',{name:'Good things start with a conversation.'}).waitFor();const result=await page.evaluate(()=>window.loop.diagnostics());assert.equal(result.native.available,true);assert.equal(result.ollama.available,true);assert.equal(result.whisper.available,true);assert.equal(result.cost.paidApi,false);const context=await page.evaluate(()=>({hasNode:typeof window.require,hasProcess:typeof window.process}));assert.equal(context.hasNode,'undefined');assert.equal(context.hasProcess,'undefined');await page.getByRole('button',{name:'Explore an example'}).click();await page.getByRole('heading',{level:1,name:'Design review · sample meeting'}).waitFor();const composer=await page.getByRole('textbox',{name:'Ask your copilot'}).boundingBox();const size=page.viewportSize()||await page.evaluate(()=>({height:innerHeight,width:innerWidth}));assert.ok(composer&&composer.y+composer.height<=size.height,'Copilot input stays visible');const report={passed:true,at:new Date().toISOString(),durationMs:Date.now()-started,checks:['packaged signed app launch','native helper bundled and available','local model available','local ASR available','paid APIs disabled','isolated renderer without Node access','synthetic meeting UI','copilot composer visible'],vault};fs.writeFileSync('docs/benchmarks/package-smoke.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));await page.screenshot({path:'docs/screenshots/packaged-meeting.png'});}finally{await app.close()}

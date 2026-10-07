@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>CFBundleIdentifier</key><string>com.meetingloop.capture-helper</string>
+<key>CFBundleName</key><string>Meeting Loop Capture</string>
+<key>CFBundleVersion</key><string>1</string>
+<key>NSMicrophoneUsageDescription</key><string>Record your voice locally during a meeting you explicitly start.</string>
+<key>NSScreenCaptureUsageDescription</key><string>Record meeting audio locally only after you start recording. Screenshots require a separate selection.</string>
+</dict></plist>
