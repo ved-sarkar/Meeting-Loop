@@ -38,5 +38,9 @@ models/
 *.p12
 # Generated reports/screenshots require explicit privacy review before inclusion
 docs/benchmarks/
-docs/screenshots/
+docs/screenshots/*
+# Individually reviewed synthetic frontend previews only.
+!docs/screenshots/overview.png
+!docs/screenshots/meeting-notes.png
+!docs/screenshots/action-items.png
 server/providers/smoke-results.json
