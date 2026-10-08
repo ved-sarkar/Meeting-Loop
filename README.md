@@ -2,6 +2,10 @@
 
 **A macOS meeting copilot for live assistance, shared context and agent-ready follow-through.** Get help with what to say, catch up on the discussion, and ask questions using the meeting transcript and your project's saved work. When the meeting ends, carry that context into a structured handoff so the next agent or approved local workflow can pick up with the sources, decisions and task state intact.
 
+## Why I built it
+
+When I started working in industry, back-to-back meetings left me manually carrying context from one conversation to the next. I wanted meeting context to flow into agents, and their progress to come back into the next meeting for review. That was the idea behind Meeting Loop: a reviewable loop where work could keep moving between meetings.
+
 ## The loop at a glance
 
 ```mermaid
@@ -13,9 +17,6 @@ flowchart TD
   Work --> Next["Next-meeting memory"]
 ```
 
-## Why I built it
-
-When I started working in industry, back-to-back meetings left me manually carrying context from one conversation to the next. I wanted meeting context to flow into agents, and their progress to come back into the next meeting for review. That was the idea behind Meeting Loop: a reviewable loop where work could keep moving between meetings.
 
 ## What it does today
 
